@@ -1,6 +1,7 @@
 const { google } = require("googleapis");
 const { Readable } = require("stream");
 const fs = require("fs");
+const cloudinary = require("cloudinary").v2;
 
 const auth = new google.auth.GoogleAuth({
   credentials: {
@@ -24,7 +25,7 @@ async function uploadPdfToFolder(fileData, fileName, folderId) {
 
   const fileMetadata = {
     name: `${fileName}.pdf`,
-    parents: [folderId], 
+    parents: [folderId],
   };
 
   const media = {
@@ -36,11 +37,34 @@ async function uploadPdfToFolder(fileData, fileName, folderId) {
     resource: fileMetadata,
     media,
     fields: "id, webViewLink",
-    supportsAllDrives: true, // required for Shared Drives
+    supportsAllDrives: true,
   });
 
   return response.data.webViewLink;
 }
 
 
-module.exports = uploadPdfToFolder;
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
+});
+
+
+async function uploadToCloudinary(fileBuffer, folder, fileName, resourceType = "image") {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder, public_id: fileName, resource_type: resourceType },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result.secure_url);
+      }
+    );
+    stream.end(fileBuffer);
+  });
+}
+
+module.exports = {
+  uploadPdfToFolder,     
+  uploadToCloudinary,    
+};

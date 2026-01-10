@@ -10,6 +10,7 @@ const upload = require("../utils/volunteer_cloudanry");
 const pdfUpload = require("../utils/pdfUpload");
 const uploadPdfToFolder = require("../utils/uploadPdf");
 const uploadImageToCloudinary = require("../utils/ngo_cloudnry");
+const { uploadToCloudinary } = require("../utils/uploadPdf");
 // const contact = require('../model/contactform');
 // const donet=require('../model/donet_form')
 const sendEmail=require('../utils/emailSend')
@@ -71,6 +72,9 @@ async function uploadPdfToDrives(fileUrl, fileName) {
   fs.unlinkSync(tempPath);
   return `https://drive.google.com/file/d/${fileId}/view`;
 }
+
+
+
 function getFormattedDateTime() {
   const now = new Date();
 
@@ -96,6 +100,8 @@ function getFormattedDateTime() {
   return `${formattedDate} ${formattedTime}`;
 }
 
+
+
 router.post("/contact", async (req, res) => {
   try {
     const { full_name, phone, email, resone,city, message } = req.body;
@@ -105,14 +111,7 @@ router.post("/contact", async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Save to DB
-    // const newContact = new contact({
-    //   full_name,
-    //   phone_number,
-    //   email,
-    //   resone,
-    // });
-    // await newContact.save();
+   
 
   const datetime = getFormattedDateTime();
     await appendToSheet("contactform!A1:E", [
@@ -124,24 +123,7 @@ router.post("/contact", async (req, res) => {
       message || "", 
       datetime,
     ]);
-      try {
-      await sendEmail(
-        email,
-        'Thanks for connecting with us!',
-        `<table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px 0;">
-        name : ${full_name},
-        email : ${email},
-        phone : ${phone_number},
-        resone : ${resone}
-        </table>`
-      );
-
-      emailStatus = 'coordinate';
-      console.log(' Email sent');
-    } catch (emailErr) {
-      emailError = emailErr.message;
-      console.error(' Email sending failed:', emailErr.message);
-    }
+   
     res.status(201).json({ message: "contact details saved successfully" });
 
   } catch (err) {
@@ -150,13 +132,27 @@ router.post("/contact", async (req, res) => {
   }
 });
 
+
+
 router.post(
   "/volienter-form",
-  upload.fields([
-    { name: "document_front", maxCount: 1 },
-    { name: "document_back", maxCount: 1 },
-  ]),
-  async (req, res) => {
+  (req, res, next) => {
+    // Multer middleware wrapped to catch errors
+    upload.fields([
+      { name: "document_front", maxCount: 1 },
+      { name: "document_back", maxCount: 1 },
+    ])(req, res, (err) => {
+      if (err) {
+        // Handle Multer errors here
+        return res.status(400).json({
+          success: false,
+          message: err.message || "File upload error",
+        });
+      }
+      next(); // pass to actual handler
+    });
+  },
+  async (req, res, next) => {
     try {
       const {
         full_name,
@@ -176,21 +172,20 @@ router.post(
         !req.files?.document_back?.[0]
       ) {
         return res.status(400).json({
+          success: false,
           message: "Aadhaar front and back both are mandatory",
         });
       }
 
       const datetime = getFormattedDateTime();
 
-      
       const frontUrl = req.files.document_front[0].path;
-      const backUrl  = req.files.document_back[0].path;
+      const backUrl = req.files.document_back[0].path;
 
       const documentUrl =
-  `=HYPERLINK("${frontUrl}","Aadhaar Front")` +
-  `&CHAR(10)&` +
-  `HYPERLINK("${backUrl}","Aadhaar Back")`;
-
+        `=HYPERLINK("${frontUrl}","Aadhaar Front")` +
+        `&CHAR(10)&` +
+        `HYPERLINK("${backUrl}","Aadhaar Back")`;
 
       await appendToSheet("volunteerform!A1:L", [
         full_name,
@@ -208,18 +203,17 @@ router.post(
       ]);
 
       res.status(201).json({
+        success: true,
         message: "Volunteer registered successfully",
         documentUrl,
       });
     } catch (err) {
       console.error("Error:", err);
-      res.status(500).json({
-        message: "Failed to save volunteer form details",
-        error: err.message,
-      });
+      next(err); // Pass to global error handler
     }
   }
 );
+
 
 
 
@@ -248,29 +242,54 @@ router.post(
 
       const datetime = getFormattedDateTime();
 
-      // ✅ Upload PDFs to Google Drive
+      // ===== Upload PDFs to Cloudinary as RAW files =====
       const regUrl = req.files?.registration_certificate
-        ? await uploadPdfToFolder(req.files.registration_certificate[0].buffer, `${organisation_name}_Registration`)
+        ? await uploadToCloudinary(
+            req.files.registration_certificate[0].buffer,
+            "ngo_pdfs",
+            `${organisation_name}_Registration`,
+            "raw"
+          )
         : "";
 
       const form80GUrl = req.files?.form_80g
-        ? await uploadPdfToFolder(req.files.form_80g[0].buffer, `${organisation_name}_80G`)
+        ? await uploadToCloudinary(
+            req.files.form_80g[0].buffer,
+            "ngo_pdfs",
+            `${organisation_name}_80G`,
+            "raw"
+          )
         : "";
 
       const form12AUrl = req.files?.form_12a
-        ? await uploadPdfToFolder(req.files.form_12a[0].buffer, `${organisation_name}_12A`)
+        ? await uploadToCloudinary(
+            req.files.form_12a[0].buffer,
+            "ngo_pdfs",
+            `${organisation_name}_12A`,
+            "raw"
+          )
         : "";
 
-      // ✅ Upload images to Cloudinary
+      // ===== Upload images to Cloudinary =====
       const logoUrl = req.files?.logo
-        ? await uploadImageToCloudinary(req.files.logo[0].buffer, "ngo_logos", `${organisation_name}_logo`)
+        ? await uploadToCloudinary(
+            req.files.logo[0].buffer,
+            "ngo_logos",
+            `${organisation_name}_logo`,
+            "image"
+          )
         : "";
 
       const otherImageUrl = req.files?.other_image
-        ? await uploadImageToCloudinary(req.files.other_image[0].buffer, "ngo_images", `${organisation_name}_other`)
+        ? await uploadToCloudinary(
+            req.files.other_image[0].buffer,
+            "ngo_images",
+            `${organisation_name}_other`,
+            "image"
+          )
         : "";
 
-      // ✅ Append all links to Google Sheet
+      // ===== Append all links to Google Sheet =====
       await appendToSheet("ngo_register!A1:P", [
         datetime,
         organisation_name,
@@ -288,13 +307,20 @@ router.post(
         `=HYPERLINK("${otherImageUrl}","Other Image")`,
       ]);
 
-      res.json({ message: "NGO registered successfully" });
+      res.status(201).json({
+        success: true,
+        message: "NGO registered successfully",
+        pdfLinks: { regUrl, form80GUrl, form12AUrl },
+      });
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: err.message });
+      res.status(500).json({ success: false, error: err.message });
     }
   }
 );
+
+
+
 
 
 
