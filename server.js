@@ -1,4 +1,4 @@
-require("dotenv").config();   // ✅ ONLY ONCE, AT TOP
+require("dotenv").config(); 
 
 const express = require('express');
 const mongoose = require('mongoose');
@@ -13,7 +13,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/form', require('./routes/contactsheet'));
 app.use('/story', require('./routes/story'));
 app.use('/activity', require('./routes/activites'));
-app.use('/media', require('./routes/media'));
+// app.use('/media', require('./routes/media'));
+app.use('/newsletter',require('./routes/newslatter'))
+app.use('/donation',require('./routes/donation_route'))
+app.use("/receipts", express.static("receipts"));
+app.use("/certificates", express.static("certificates"));
 
 require('./cron/story.cron');  
 require('./cron/instagramReel.cron'); 
@@ -23,14 +27,13 @@ mongoose
   .then(() => {
     console.log('MongoDB connected');
 
-    // 🔥 ADD THIS DEBUG LINE (TEMPORARY)
     console.log(
       "CLOUDINARY ENV →",
       process.env.CLOUD_NAME,
       process.env.CLOUD_API_KEY ? "KEY_LOADED" : "KEY_MISSING"
     );
 
-    const PORT = process.env.PORT || 5000;
+    const PORT = process.env.PORT || 8000;
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });

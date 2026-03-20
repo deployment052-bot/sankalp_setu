@@ -1,0 +1,128 @@
+const PDFDocument = require("pdfkit");
+const fs = require("fs");
+const path = require("path");
+
+module.exports = (donation) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const dir = "receipts";
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+
+      const filePath = path.join(dir, `receipt_${donation._id}.pdf`);
+      const doc = new PDFDocument({ margin: 50 });
+      const stream = fs.createWriteStream(filePath);
+
+      doc.pipe(stream);
+
+      // --- Logo Top-Left ---
+      if (fs.existsSync("logo/logo.png")) {
+        doc.image("logo/logo.png", 70, 40, { width: 60 });
+      }
+
+     
+      doc
+        .fontSize(16)
+        .font("Times-Bold")
+        .text("SANKALP SETU FOUNDATION", { align: "center" })
+        .moveDown(0.3);
+
+      doc
+        .fontSize(10)
+        .font("Times-Roman")
+        .text("Regd Under S.R Act 21, 1860 | Regd No: S000229", { align: "center" })
+        .text(
+          "Registered Office: Janki Palace, Near Nand Garden,",
+          { align: "center" }
+        ).text(
+          "Kachhua Road Nandlal Chapra, Patna Bihar 80003",
+          { align: "center" }
+        )
+        .text("Email: sankalpsetufoundation@gmail.com | Mob: 9211621996", { align: "center" })
+        .moveDown(2);
+
+      // --- Receipt Header ---
+      doc
+        .fontSize(12)
+        .font("Times-Bold")
+        .text(`Receipt No: ${donation._id}`)
+        .moveDown(0.5);
+
+      doc
+        .fontSize(14)
+        .text("DONATION RECEIPT", { align: "center" })
+        .moveDown(1.5);
+
+      // --- Donation Details ---
+      doc
+        .fontSize(12)
+        .font("Times-Roman")
+        .text("Received with thanks from:", { continued: true })
+        .font("Times-Bold")
+        .text(` ${donation.name}`)
+        .moveDown(0.5);
+
+      doc.font("Times-Roman").text("The sum of Rupees:", { continued: true });
+      doc.font("Times-Bold").text(` ${donation.amount}/-`).moveDown(0.5);
+
+      doc.font("Times-Roman").text("Towards:", { continued: true });
+      doc.font("Times-Bold").text(` ${donation.purpose || "Donation"}`).moveDown(0.5);
+
+      doc.font("Times-Roman").text("Payment Mothod:", { continued: true });
+      doc.font("Times-Bold").text(` ${donation.paymentMode || "ONLINE"}`).moveDown(0.5);
+
+      const donationDate = donation.createdAt
+        ? new Date(donation.createdAt).toLocaleDateString("en-GB")
+        : "Invalid Date";
+      doc.font("Times-Roman").text("Date:", { continued: true });
+      doc.font("Times-Bold").text(` ${donationDate}`).moveDown(3);
+
+      // --- Authorized Signatory ---
+      const sigY = doc.y;
+     // --- Authorized Signatory Section ---
+
+// Name (Left side)
+doc
+  .fontSize(9)
+  .font("Times-Bold")
+  .text("(NIHAL KUMAR GUPTA)", 400, 325);
+
+// Authorized Signatory (Right side)
+doc
+  .fontSize(12)
+  .font("Times-Bold")
+  .text("Authorized Signatory", 400, 340);
+
+// Stamp + Signature Images
+if (fs.existsSync("logo/STAMP.png")) {
+  // Stamp (Right side, overlapping text)
+  doc.image("logo/STAMP.png", 200, 150, { width: 150 });
+}
+
+if (fs.existsSync("logo/sighnature.png")) {
+  doc.save(); // save current state
+
+
+  doc.rotate(290, { origin: [400, 298] });
+
+  // Draw the image at the rotation origin
+  doc.image("logo/sighnature.png", 400, 325, { width: 70 });
+
+  doc.restore(); 
+}
+
+    //   doc
+    //     .fontSize(11)
+    //     .font("Times-Bold")
+    //     .text("Authorized Signatory", doc.page.width - 150, sigY + 100);
+
+      doc.end();
+
+      stream.on("finish", () => resolve(filePath));
+      stream.on("error", (err) => reject(err));
+    } catch (err) {
+      reject(err);
+    }
+  });
+};

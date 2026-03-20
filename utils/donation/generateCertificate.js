@@ -1,0 +1,221 @@
+const puppeteer = require("puppeteer");
+const fs = require("fs");
+const path = require("path");
+
+module.exports = async (donation) => {
+  const dir = "certificates";
+
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+
+  const filePath = path.join(dir, `certificate_${donation._id}.pdf`);
+
+  const browser = await puppeteer.launch({
+    headless: "new",
+    args: ["--no-sandbox", "--disable-setuid-sandbox"]
+  });
+
+  const page = await browser.newPage();
+
+  const html = `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    
+  </head>
+ <body style="
+margin:0;
+padding:0;
+background:#f2f2f2;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+font-family:Arial, Helvetica, sans-serif;
+">
+
+
+<!-- OUTER FRAME -->
+<div style="
+padding:0;
+width:950px;
+max-width:95%;
+box-shadow:0 0 25px rgba(0,0,0,0.3);
+position: relative;
+">
+
+
+<!-- INNER CERTIFICATE -->
+<div style="
+background:#ffffff;
+border:6px solid #d4af37;
+padding:60px 50px;
+text-align:center;
+position:relative;
+">
+
+<!-- TOP ORNAMENT -->
+<div style="
+
+">
+<img src="https://res.cloudinary.com/ddcy9noqo/image/upload/v1770187232/Border-decor-bottom-middle_manbi5.png" alt="crown" style="position: absolute;  max-width: 746px; object-fit: cover; left: 34%; height: 52px; top: 10px;">
+
+<img src="https://res.cloudinary.com/ddcy9noqo/image/upload/v1770187233/Border-decor-top_ix4kgk.png" alt="top-left" style="position: absolute; top: 0; left: 0; width: 154px; object-fit: cover; left: 15px; top: 15px;">
+<img src="https://res.cloudinary.com/ddcy9noqo/image/upload/v1770187232/Border-decor-middle_omq2du.png" alt="top-left" style="position: absolute; top: 22%; left: 10px; rotate: 180.2deg; width: 42px; height:386px; ">
+<img src="https://res.cloudinary.com/ddcy9noqo/image/upload/v1770187232/Border-decor-middle_omq2du.png" alt="top-left" style="position: absolute; top: 22%; right: 15px;  width: 42px; height:386px; ">
+</div>
+<img src="https://res.cloudinary.com/ddcy9noqo/image/upload/v1770187233/Border-decor-top_ix4kgk.png" alt="top-left" style="position: absolute; top: 15px;  width: 154px; object-fit: cover; right: 15px; rotate: 90deg; ">
+<img src="https://res.cloudinary.com/ddcy9noqo/image/upload/v1770187233/Border-decor-top_ix4kgk.png" alt="top-left" style="position: absolute; top: 15px;  width: 154px; object-fit: cover; right: 15px; rotate: 90deg; ">
+<img src="https://res.cloudinary.com/ddcy9noqo/image/upload/v1770187233/Border-decor-top_ix4kgk.png" alt="top-left" style="position: absolute; bottom: 15px;  width: 154px; object-fit: cover; right: 15px; rotate: 180deg;">
+<img src="https://res.cloudinary.com/ddcy9noqo/image/upload/v1770187233/Border-decor-top_ix4kgk.png" alt="top-left" style="position: absolute; bottom: 15px;  width: 154px; object-fit: cover; left: 15px; rotate: -90deg; ">
+
+<!-- TITLE -->
+<h1 style="
+margin:0;
+font-size:34px;
+letter-spacing:3px;
+font-weight:bold;
+color:#000;
+margin-top: 20px;
+">
+CERTIFICATE OF DONATION
+</h1>
+
+<!-- SUBTITLE -->
+<p style="
+margin-top:12px;
+font-size:15px;
+color:#555;
+">
+This certifies that
+</p>
+
+
+<!-- NAME -->
+<h2 style="
+margin:30px 0 10px;
+font-size:36px;
+font-family:'Times New Roman', serif;
+font-style:italic;
+color:#000;
+">
+${donation.name}
+</h2>
+
+<!-- LINE -->
+<div style="
+width:420px;
+height:2px;
+background:#000;
+margin:10px auto 20px;
+"></div>
+
+
+<!-- CONTENT -->
+<p style="
+font-size:16px;
+color:#333;
+line-height:1.7;
+max-width:650px;
+margin:0 auto;
+">
+
+On behalf of ${donation.name}, has generously donated
+<strong>₹${donation.amount}</strong> to the following foundation
+
+</p>
+
+
+<!-- FOUNDATION -->
+<h3 style="
+margin-top:15px;
+font-size:22px;
+letter-spacing:1px;
+font-weight:600;
+color:#000;
+">
+SANKALP SETU FOUNDATION
+</h3>
+
+
+<!-- SEAL -->
+<div style="
+margin:40px auto 25px;
+width:120px;
+height:120px;
+border-radius:50%;
+border:6px solid #d4af37;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:bold;
+font-size:12px;
+color:#555;
+text-align:center;
+line-height:1.4;
+">
+
+<img src="https://res.cloudinary.com/ddcy9noqo/image/upload/v1770187234/Label_hqgcg4.png" style="width: 239px; object-fit: cover;" alt="badge">
+
+</div>
+
+
+<!-- SIGNATURE + DATE -->
+<div style="
+display:flex;
+justify-content:space-between;
+margin-top:50px;
+padding:0 40px;
+">
+
+<!-- SIGNATURE -->
+<div style="text-align:center;width:200px;">
+<div style="
+border-top:2px solid #000;
+margin-bottom:5px;
+"><img src='https://res.cloudinary.com/ddcy9noqo/image/upload/v1770201522/Screenshot_2026-01-28_183845-removebg-preview_k9zlz7.png' style='width:102px; object-fit:cover;'/></div>
+<span style="font-size:14px;">Signature</span>
+</div>
+
+<!-- DATE -->
+<div style="text-align:center;width:200px;">
+<div style="
+border-top:2px solid #000;
+margin-bottom:5px;
+"></div>
+<span style="font-size:14px;">${donation.donatedAt}</span>
+</div>
+
+</div>
+
+
+<!-- FOOTER -->
+<p style="
+margin-top:35px;
+font-size:12px;
+color:#777;
+letter-spacing:0.5px;
+">
+This certificate is digitally generated and valid without signature.
+</p>
+
+</div>
+</div>
+
+</body>
+  </html>
+  `;
+
+  await page.setContent(html, { waitUntil: "networkidle0" });
+
+  await page.pdf({
+    path: filePath,
+    format: "A4",
+    printBackground: true
+  });
+
+  await browser.close();
+
+  return filePath;
+};

@@ -1,22 +1,20 @@
 const router = require("express").Router();
 const Media = require("../model/media");
-const { upload, uploadToCloudinary } = require("../utils/mediaUpload");
+const upload = require("../middleware/multerConfig");
+const uploadToR2 = require("../utils/uploadToR2cloud");
 
-
- 
 router.post("/upload", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: "No file uploaded" });
     }
 
-    const result = await uploadToCloudinary(req.file, "ngo-gallery");
+    const result = await uploadToR2(req.file);
 
     const media = await Media.create({
-      url: result.secure_url,
-      publicId: result.public_id,
-      type: result.resource_type,
-      
+      url: result.url,
+      publicId: result.key,
+      type: result.type,
       title: req.body.title || "",
     });
 
@@ -26,7 +24,6 @@ router.post("/upload", upload.single("file"), async (req, res) => {
     });
 
   } catch (err) {
-    console.error(err);
     res.status(500).json({
       success: false,
       message: "Upload failed",

@@ -56,64 +56,64 @@ router.post('/subscribe', async (req, res) => {
 
   let emailStatus = "Pending";
 
-try {
-  await sendEmail(
-    email,
-    'Thanks for subscribing!',
-    `<table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px 0;">
-  <tr>
-    <td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+// try {
+//   await sendEmail(
+//     email,
+//     'Thanks for subscribing!',
+//     `<table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px 0;">
+//   <tr>
+//     <td align="center">
+//       <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden;">
         
-        <tr>
-          <td bgcolor="#21467d" style="padding: 20px 30px; text-align: center;">
-            <h2 style="color: #ffffff; font-size: 20px; margin: 10px 0 0;"> SANKALP SETU FOUNDATION </h2>
-          </td>
-        </tr>
+//         <tr>
+//           <td bgcolor="#21467d" style="padding: 20px 30px; text-align: center;">
+//             <h2 style="color: #ffffff; font-size: 20px; margin: 10px 0 0;"> SANKALP SETU FOUNDATION </h2>
+//           </td>
+//         </tr>
         
-        <tr>
-          <td style="padding: 30px;">
-            <h3 style="color: #21467d; font-size: 18px; margin-top: 0;">Thank you for subscribing!</h3>
-            <p style="font-size: 15px; color: #333333; line-height: 1.5;">
-              You’ve successfully subscribed to  SANKALP SETU FOUNDATION. You’ll now receive the latest news, updates, and offers straight to your inbox.
-            </p>
-            <p style="font-size: 15px; color: #333333; line-height: 1.5;">
-              We're excited to have you on board and look forward to keeping you informed!
-            </p>
-          </td>
-        </tr>
+//         <tr>
+//           <td style="padding: 30px;">
+//             <h3 style="color: #21467d; font-size: 18px; margin-top: 0;">Thank you for subscribing!</h3>
+//             <p style="font-size: 15px; color: #333333; line-height: 1.5;">
+//               You’ve successfully subscribed to  SANKALP SETU FOUNDATION. You’ll now receive the latest news, updates, and offers straight to your inbox.
+//             </p>
+//             <p style="font-size: 15px; color: #333333; line-height: 1.5;">
+//               We're excited to have you on board and look forward to keeping you informed!
+//             </p>
+//           </td>
+//         </tr>
 
-        <tr>
-          <td style="padding: 0 30px 30px 30px; text-align: center;">
-            <a href="./" style="background-color: #21467d; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 14px;">
-              Visit Our Website
-            </a>
-          </td>
-        </tr>
+//         <tr>
+//           <td style="padding: 0 30px 30px 30px; text-align: center;">
+//             <a href="./" style="background-color: #21467d; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 5px; font-size: 14px;">
+//               Visit Our Website
+//             </a>
+//           </td>
+//         </tr>
 
-        <tr>
-          <td bgcolor="#21467d" align="center" style="padding: 15px; color: #ffffff; font-size: 13px;">
-            <p style="margin: 0;">© 2025 SANKALP SETU FOUNDATION. All rights reserved.</p>
-            <p style="margin: 5px 0 0;">
-              <a href="https://yourdomain.com/privacy-policy" style="color: #ffffff; text-decoration: underline;">Privacy Policy</a> | 
-              <a href="https://yourdomain.com/terms" style="color: #ffffff; text-decoration: underline;">Terms & Conditions</a>
-            </p>
-          </td>
-        </tr>
+//         <tr>
+//           <td bgcolor="#21467d" align="center" style="padding: 15px; color: #ffffff; font-size: 13px;">
+//             <p style="margin: 0;">© 2025 SANKALP SETU FOUNDATION. All rights reserved.</p>
+//             <p style="margin: 5px 0 0;">
+//               <a href="https://yourdomain.com/privacy-policy" style="color: #ffffff; text-decoration: underline;">Privacy Policy</a> | 
+//               <a href="https://yourdomain.com/terms" style="color: #ffffff; text-decoration: underline;">Terms & Conditions</a>
+//             </p>
+//           </td>
+//         </tr>
 
-      </table>
-    </td>
-  </tr>
-</table>`
-  );
+//       </table>
+//     </td>
+//   </tr>
+// </table>`
+//   );
 
-  emailStatus = "Success";
-  console.log('✅ Email sent');
+//   emailStatus = "Success";
+//   console.log('✅ Email sent');
 
-} catch (emailErr) {
-  emailStatus = `Failed: ${emailErr.message}`;
-  console.error(' Email send failed:', emailErr.message);
-}
+// } catch (emailErr) {
+//   emailStatus = `Failed: ${emailErr.message}`;
+//   console.error(' Email send failed:', emailErr.message);
+// }
 
 await appendToSheet('SUBSCRIBE_EMAIL_NEWSLATTER!A1:C', [
   email.trim(),
@@ -161,6 +161,5 @@ router.post('/send-newsletter', async (req, res) => {
   }
 });
 
-router.get()
 
 module.exports = router;
